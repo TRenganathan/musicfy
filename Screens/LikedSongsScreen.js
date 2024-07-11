@@ -196,6 +196,27 @@ const LikedSongsScreen = () => {
     setSearchedTracks(filteredTracks);
   };
 
+  /******************************************************************************************/
+  // const [tracks, setTracks] = useState([]);
+  // const fetchSongs = async () => {
+  //   try {
+  //     await fetch(
+  //       'https://api.jamendo.com/v3.0/tracks/?client_id=e0ab303f&format=jsonpretty&name=mocking',
+  //     )
+  //       .then(response => response.json())
+  //       .then(data => {
+  //         console.log(data, 'JAMENDO API');
+  //         setTracks(data.results);
+  //       });
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // };
+  // useEffect(() => {
+  //   fetchSongs();
+  // }, []);
+  /******************************************************************************************/
+
   return (
     <>
       <View style={{flex: 1, backgroundColor: 'black'}}>
