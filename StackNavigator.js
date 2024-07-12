@@ -12,6 +12,7 @@ import LoginScreen from './Screens/LoginScreen';
 import LikedSongsScreen from './Screens/LikedSongsScreen';
 import SongInfoScreen from './Screens/SongInfoScreen';
 import PlayListScreen from './Screens/PlayListScreen';
+import LocalMusicPlayer from './Screens/LocalMusicPlayer';
 
 const Tab = createBottomTabNavigator();
 const BottomTabs = () => {
@@ -69,6 +70,21 @@ const BottomTabs = () => {
             ),
         }}
       />
+      <Tab.Screen
+        name="LocalSongs"
+        component={LocalMusicPlayer}
+        options={{
+          headerShown: true,
+          tabBarLabel: 'Local Songs',
+          tabBarLabelStyle: {color: 'white'},
+          tabBarIcon: focused =>
+            focused ? (
+              <Ionicons name="musical-notes-outline" size={25} color="white" />
+            ) : (
+              <Ionicons name="musical-notes" color="white" size={25} />
+            ),
+        }}
+      />
     </Tab.Navigator>
   );
 };
@@ -109,7 +125,20 @@ function Navigation() {
           options={{
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#9b6078',
+              backgroundColor: '#3b5998',
+            },
+            headerTitleStyle: {color: 'white'},
+
+            headerTintColor: 'white',
+          }}
+        />
+        <Stack.Screen
+          name="LocalMusic"
+          component={LocalMusicPlayer}
+          options={{
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: '#3b5998',
             },
             headerTitleStyle: {color: 'white'},
 

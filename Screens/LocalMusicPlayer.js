@@ -1,95 +1,75 @@
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
-  Alert,
+  View,
+  Text,
   Button,
   FlatList,
-  Image,
-  Modal,
-  Pressable,
+  PermissionsAndroid,
+  Alert,
   ScrollView,
-  StyleSheet,
-  Text,
+  Image,
+  Pressable,
   TextInput,
-  View,
+  StyleSheet,
 } from 'react-native';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import RNFS from 'react-native-fs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import AntDesign from 'react-native-vector-icons/AntDesign';
 import Entypo from 'react-native-vector-icons/Entypo';
-import FontAwesome from 'react-native-vector-icons/FontAwesome';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import SongItem from '../components/SongItem';
-import {Player} from '../App';
-
-//
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import {
+  getAll,
+  SortSongFields,
+  SortSongOrder,
+} from 'react-native-get-music-files';
+import Sound from 'react-native-sound';
+import LinearGradient from 'react-native-linear-gradient';
 import {BottomModal} from 'react-native-modals';
 import {ModalContent, ModalPortal} from 'react-native-modals';
-import Sound from 'react-native-sound';
-
-const LikedSongsScreen = () => {
+import {Player} from '../App';
+const LocalMusicPlayer = () => {
+  const [audioFiles, setAudioFiles] = useState([]);
+  const [input, setIput] = useState('');
   const {currentTrack, setCurrentTrack} = useContext(Player);
   const [modalVisible, setModalVisible] = useState(false);
-  const [progress, setProgress] = useState(null);
-
-  const [isPlaying, setIsPlaying] = useState(false);
-  // const [currentTime, setCurrentTime] = useState(0);
-  const [totalDuration, setTotalDuration] = useState(0);
-
-  const [input, setIput] = useState('');
-  const [savedTracks, setSavedTracks] = useState([]);
+  const [searchedTracks, setSearchedTracks] = useState([]);
   const [currentSound, setCurrentSound] = useState(null);
   const [progressInterval, setProgressInterval] = useState(null);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const value = useRef(0);
-
-  const [searchedTracks, setSearchedTracks] = useState([]);
+  const [isPlaying, setIsPlaying] = useState(false);
   useEffect(() => {
-    // Cleanup when component unmounts or sound changes
-    return () => {
-      if (progressInterval) {
-        clearInterval(progressInterval);
-      }
-      if (currentSound) {
-        currentSound.release();
-      }
-    };
-  }, [currentSound, progressInterval]);
+    requestStoragePermission();
+  }, []);
 
-  async function getSavedTracks() {
+  const requestStoragePermission = async () => {
     try {
-      const accessToken = await AsyncStorage.getItem('token');
-
-      const response = await fetch(
-        'https://api.spotify.com/v1/me/tracks?offset=0&limit=50',
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
         {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          title: 'Storage Permission',
+          message: 'App needs access to your storage to read audio files',
         },
       );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Storage permission granted');
 
-      if (!response.ok) {
-        throw new Error('failed to fetch the tracks');
+        getAllLocalSongs();
+        // _getSongs();
+      } else {
+        console.log('Storage permission denied');
       }
-      const data = await response.json();
-      setSavedTracks(data.items);
-    } catch (error) {
-      console.log(error);
+    } catch (err) {
+      console.warn(err);
     }
-  }
-  useEffect(() => {
-    getSavedTracks();
-  }, []);
-  const playTrack = async () => {
-    if (savedTracks.length > 0) {
-      setCurrentTrack(savedTracks[0]);
-    }
-    await Play(savedTracks[0]);
   };
+
   const Play = async nextTrack => {
-    const preview_url = nextTrack?.track?.preview_url;
+    setCurrentTrack(nextTrack);
+    const preview_url = nextTrack?.url;
     if (!preview_url) {
       console.error('No preview URL found for track:', nextTrack);
       return;
@@ -121,25 +101,52 @@ const LikedSongsScreen = () => {
         });
       });
       setCurrentSound(sound);
-      // Optionally set audio mode (this may not be needed depending on your requirements)
-      Sound.setCategory('Playback');
-      setIsPlaying(sound?._loaded);
 
-      const interval = setInterval(() => {
-        if (sound) {
-          sound.getCurrentTime(seconds => setCurrentTime(seconds));
-        }
-      }, 1000);
-      setProgressInterval(interval);
+      Sound.setCategory('Playback');
+      setIsPlaying(true);
+      //   const interval = setInterval(() => {
+      //     if (sound) {
+      //       sound.getCurrentTime(seconds => setCurrentTime(seconds));
+      //     }
+      //   }, 1000);
+      //   setProgressInterval(interval);
     } catch (error) {
       console.log(error);
     }
+  };
+  const getAllLocalSongs = async () => {
+    const songsOrError = await getAll({
+      limit: 100,
+
+      offset: 0,
+      cover: true, // Fetch album covers
+      coverQuality: 50, // Medium quality album covers
+
+      minSongDuration: 1000,
+      sortBy: SortSongFields.TITLE,
+      sortOrder: SortSongOrder.DESC,
+    }).then(res => {
+      setAudioFiles(res);
+    });
+  };
+  const handleSearch = text => {
+    setIput(text);
+    const filteredTracks = audioFiles?.filter(item =>
+      item.track.name.toLowerCase().includes(text.toLocaleLowerCase()),
+    );
+    setSearchedTracks(filteredTracks);
   };
 
   const formatTime = time => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+  const playTrack = async () => {
+    if (audioFiles.length > 0) {
+      setCurrentTrack(audioFiles[0]);
+    }
+    await Play(audioFiles[0]);
   };
   const handlePlayPause = () => {
     if (currentSound) {
@@ -157,13 +164,13 @@ const LikedSongsScreen = () => {
       setCurrentSound(null);
     }
     value.current += 1;
-    if (value.current < savedTracks.length) {
-      const nextTrack = savedTracks[value.current];
+    if (value.current < audioFiles.length) {
+      const nextTrack = audioFiles[value.current];
       setCurrentTrack(nextTrack);
       await Play(nextTrack);
     } else {
       value.current = 0;
-      const nextTrack = savedTracks[0];
+      const nextTrack = audioFiles[0];
       setCurrentTrack(nextTrack);
       await Play(nextTrack);
     }
@@ -175,171 +182,132 @@ const LikedSongsScreen = () => {
     }
 
     value.current -= 1;
-    if (value.current < savedTracks.length) {
+    if (value.current < audioFiles.length) {
       if (value.current < 0) {
-        value.current = savedTracks.length - 1;
-        const previousTrack = savedTracks[value.current];
+        value.current = audioFiles.length - 1;
+        const previousTrack = audioFiles[value.current];
         setCurrentTrack(previousTrack);
         await Play(previousTrack);
       } else {
-        const previousTrack = savedTracks[value.current];
+        const previousTrack = audioFiles[value.current];
         setCurrentTrack(previousTrack);
         await Play(previousTrack);
       }
     }
   };
-  const handleSearch = text => {
-    setIput(text);
-    const filteredTracks = savedTracks?.filter(item =>
-      item.track.name.toLowerCase().includes(text.toLocaleLowerCase()),
-    );
-    setSearchedTracks(filteredTracks);
-  };
-
-  /******************************************************************************************/
-  // const [tracks, setTracks] = useState([]);
-  // const fetchSongs = async () => {
-  //   try {
-  //     await fetch(
-  //       'https://api.jamendo.com/v3.0/tracks/?client_id=e0ab303f&format=jsonpretty&name=mocking',
-  //     )
-  //       .then(response => response.json())
-  //       .then(data => {
-  //         console.log(data, 'JAMENDO API');
-  //         setTracks(data.results);
-  //       });
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-  // useEffect(() => {
-  //   fetchSongs();
-  // }, []);
-  /******************************************************************************************/
-
   return (
-    <>
-      <View style={{flex: 1, backgroundColor: 'black'}}>
-        <View style={{flex: 1, marginTop: 10}}>
-          <Pressable
+    <LinearGradient
+      colors={['#510d55', '#180310']}
+      style={{flex: 1, padding: 10}}>
+      <Text style={{color: 'black'}}>Local Audio Files:</Text>
+      <Pressable
+        style={{
+          marginHorizontal: 10,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginTop: 9,
+        }}>
+        <Pressable
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            backgroundColor: '#42275a',
+            padding: 9,
+            flex: 1,
+            borderRadius: 3,
+            height: 38,
+          }}>
+          <AntDesign name="search1" color="white" size={20} />
+          <TextInput
+            value={input}
+            onChangeText={text => handleSearch(text)}
+            placeholder="find liked songs"
+            placeholderTextColor={'gray'}
+            style={{fontWeight: '500', color: 'white', height: 90}}
+          />
+        </Pressable>
+        <Pressable
+          style={{
+            marginHorizontal: 10,
+            backgroundColor: '#42275a',
+            padding: 10,
+            borderRadius: 3,
+            height: 38,
+          }}>
+          <Text style={{color: 'white'}}>Sort</Text>
+        </Pressable>
+      </Pressable>
+      <View style={{height: 50}} />
+
+      <View style={{marginHorizontal: 10}}>
+        <View>
+          <Text style={{fontSize: 18, fontWeight: 'bold', color: 'white'}}>
+            Local Songs
+          </Text>
+          <Text
             style={{
-              marginHorizontal: 10,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginTop: 9,
+              color: 'white',
+              fontSize: 13,
+              marginTop: 5,
+              marginBottom: 10,
             }}>
-            <Pressable
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 10,
-                backgroundColor: '#42275a',
-                padding: 9,
-                flex: 1,
-                borderRadius: 3,
-                height: 38,
-              }}>
-              <AntDesign name="search1" color="white" size={20} />
-              <TextInput
-                value={input}
-                onChangeText={text => handleSearch(text)}
-                placeholder="find liked songs"
-                placeholderTextColor={'gray'}
-                style={{fontWeight: '500', color: 'white', height: 90}}
-              />
-            </Pressable>
-            <Pressable
-              style={{
-                marginHorizontal: 10,
-                backgroundColor: '#42275a',
-                padding: 10,
-                borderRadius: 3,
-                height: 38,
-              }}>
-              <Text style={{color: 'white'}}>Sort</Text>
-            </Pressable>
-          </Pressable>
-          <View style={{height: 50}} />
-          <View style={{marginHorizontal: 10}}>
-            <Text style={{fontSize: 18, fontWeight: 'bold', color: 'white'}}>
-              Liked Songs
-            </Text>
-            <Text style={{color: 'white', fontSize: 13, marginTop: 5}}>
-              {savedTracks?.length ? savedTracks?.length : 0}
-            </Text>
-          </View>
+            {audioFiles?.length ? audioFiles?.length : 0}
+          </Text>
+        </View>
 
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <MaterialCommunityIcons
+            name="cross-bolnisi"
+            size={24}
+            color="#1DB954"
+          />
           <Pressable
+            onPress={playTrack}
             style={{
-              marginTop: 20,
-              marginHorizontal: 10,
-              flexDirection: 'row',
-              justifyContent: 'space-between',
+              width: 50,
+              height: 50,
+              borderRadius: 30,
+              justifyContent: 'center',
               alignItems: 'center',
+              backgroundColor: '#1DB954',
             }}>
-            <Pressable
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                justifyContent: 'center',
-                alignItems: 'center',
-                backgroundColor: '#1DB954',
-              }}>
-              <AntDesign name="arrowdown" size={20} color="white" />
-            </Pressable>
-
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-              <MaterialCommunityIcons
-                name="cross-bolnisi"
-                size={24}
-                color="#1DB954"
-              />
-              <Pressable
-                onPress={playTrack}
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 30,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundColor: '#1DB954',
-                }}>
-                <Entypo name="controller-play" size={24} color="white" />
-              </Pressable>
-            </View>
+            <Entypo name="controller-play" size={24} color="white" />
           </Pressable>
-
-          <View>
-            {searchedTracks.length > 0 ? (
-              <FlatList
-                showsVerticalScrollIndicator={false}
-                data={searchedTracks}
-                renderItem={({item}) => (
-                  <SongItem
-                    item={item}
-                    onPress={() => Play(item)}
-                    isPlaying={item === currentTrack}
-                  />
-                )}
-              />
-            ) : (
-              <FlatList
-                showsVerticalScrollIndicator={false}
-                data={savedTracks}
-                renderItem={({item}) => (
-                  <SongItem
-                    item={item}
-                    onPress={() => Play(item)}
-                    isPlaying={item === currentTrack}
-                  />
-                )}
-              />
-            )}
-          </View>
         </View>
       </View>
+      <FlatList
+        data={audioFiles}
+        keyExtractor={item => item.path}
+        renderItem={({item, i}) => (
+          <Pressable
+            onPress={() => Play(item)}
+            key={i}
+            style={{
+              flexDirection: 'row',
+              gap: 5,
+              alignItems: 'center',
+              margin: 10,
+            }}>
+            {item.cover && (
+              <Image
+                source={{uri: item.cover}}
+                style={{width: 50, height: 50}}
+              />
+            )}
+            <View style={{flex: 1}}>
+              <Text numberOfLines={1} style={{color: 'white'}}>
+                {item.title}
+              </Text>
+            </View>
+            <View style={{flexDirection: 'row', gap: 7}}>
+              <AntDesign name="heart" size={25} color={'#1DB954'} />
+              <Feather name="more-vertical" size={25} color="#c0c0c0" />
+            </View>
+          </Pressable>
+        )}
+      />
       {currentTrack && (
         <Pressable
           onPress={() => setModalVisible(!modalVisible)}
@@ -360,10 +328,10 @@ const LikedSongsScreen = () => {
             gap: 10,
           }}>
           <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-            {currentTrack?.track?.album?.images[0].url && (
+            {currentTrack?.cover && (
               <Image
                 style={{width: 40, height: 40}}
-                source={{uri: currentTrack?.track?.album?.images[0].url}}
+                source={{uri: currentTrack?.cover}}
               />
             )}
             <Text
@@ -374,8 +342,7 @@ const LikedSongsScreen = () => {
                 color: 'white',
                 fontWeight: 'bold',
               }}>
-              {currentTrack?.track?.name} •{' '}
-              {currentTrack?.track?.artists[0].name}
+              {currentTrack?.title} • {currentTrack?.track?.artists[0].name}
             </Text>
           </View>
           <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
@@ -405,16 +372,16 @@ const LikedSongsScreen = () => {
               </Pressable>
 
               <Text style={{fontSize: 14, fontWeight: 'bold', color: 'white'}}>
-                {currentTrack?.track?.name}
+                {currentTrack?.title}
               </Text>
               <Entypo name="dots-three-vertical" size={24} color="white" />
             </Pressable>
             <View style={{height: 70}} />
             <View style={{padding: 10}}>
-              {currentTrack?.track?.album?.images[0]?.url && (
+              {currentTrack?.cover && (
                 <Image
                   style={{width: '100%', height: 330, borderRadius: 4}}
-                  source={{uri: currentTrack?.track?.album?.images[0]?.url}}
+                  source={{uri: currentTrack?.cover}}
                 />
               )}
               <View
@@ -532,12 +499,11 @@ const LikedSongsScreen = () => {
           </View>
         </ModalContent>
       </BottomModal>
-    </>
+    </LinearGradient>
   );
 };
 
-export default LikedSongsScreen;
-
+export default LocalMusicPlayer;
 const styles = StyleSheet.create({
   progressbar: {
     height: '100%',

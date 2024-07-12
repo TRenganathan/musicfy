@@ -8,10 +8,12 @@ const ArtistCard = ({item}) => {
   return (
     <View style={{margin: 10}}>
       <Pressable onPress={() => LinkToSpotify(item)}>
-        <Image
-          style={{width: 130, height: 130, borderRadius: 5}}
-          source={{uri: item.images[0].url}}
-        />
+        {item?.images[0]?.url && (
+          <Image
+            style={{width: 130, height: 130, borderRadius: 5}}
+            source={{uri: item.images[0].url}}
+          />
+        )}
         <Text
           style={{
             fontSize: 13,

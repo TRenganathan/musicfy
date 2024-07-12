@@ -60,16 +60,18 @@ const ProfileScreen = () => {
       <ScrollView style={{marginTop: 50}}>
         <View style={{padding: 12}}>
           <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-            <Image
-              style={{
-                width: 100,
-                height: 100,
-                borderRadius: 50,
-                resizeMode: 'cover',
-                objectFit: 'contain',
-              }}
-              source={{uri: userProfile?.images[0].url}}
-            />
+            {userProfile?.images[0].url && (
+              <Image
+                style={{
+                  width: 100,
+                  height: 100,
+                  borderRadius: 50,
+                  resizeMode: 'cover',
+                  objectFit: 'contain',
+                }}
+                source={{uri: userProfile?.images[0].url}}
+              />
+            )}
             <View>
               <Text style={{color: 'white', fontSize: 16, fontWeight: 'bold'}}>
                 {userProfile?.display_name}

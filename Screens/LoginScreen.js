@@ -21,28 +21,28 @@ const LoginScreen = () => {
   const navigation = useNavigation();
   const [acToken, setAcToken] = useState(null);
   useEffect(() => {
-    const checkTokenValidity = async () => {
-      const accessToken = await AsyncStorage.getItem('token');
-      setAcToken(accessToken);
-      const expirationDate = await AsyncStorage.getItem('expirationDate');
-      console.log('access token', accessToken);
-      console.log('expiration date', expirationDate);
+    // const checkTokenValidity = async () => {
+    //   const accessToken = await AsyncStorage.getItem('token');
+    //   setAcToken(accessToken);
+    //   const expirationDate = await AsyncStorage.getItem('expirationDate');
+    //   console.log('access token', accessToken);
+    //   console.log('expiration date', expirationDate);
 
-      if (accessToken && expirationDate) {
-        const currentTime = Date.now();
-        if (currentTime < parseInt(expirationDate, 10)) {
-          // Token is still valid
-          navigation.replace('Main');
-          navigation.navigate('Main');
-        } else {
-          // Token has expired
-          await AsyncStorage.removeItem('token');
-          await AsyncStorage.removeItem('expirationDate');
-        }
-      }
-    };
-
-    checkTokenValidity();
+    //   if (accessToken && expirationDate) {
+    //     const currentTime = Date.now();
+    //     if (currentTime < parseInt(expirationDate, 10)) {
+    //       // Token is still valid
+    //       navigation.replace('Main');
+    //       navigation.navigate('Main');
+    //     } else {
+    //       // Token has expired
+    //       await AsyncStorage.removeItem('token');
+    //       await AsyncStorage.removeItem('expirationDate');
+    //     }
+    //   }
+    // };
+    navigation.navigate('LocalMusic');
+    // checkTokenValidity();
   }, [acToken]);
 
   const Authenticate = async () => {

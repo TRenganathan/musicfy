@@ -14,10 +14,12 @@ const SongItem = ({item, onPress, isPlaying}) => {
     <Pressable
       style={{flexDirection: 'row', padding: 10}}
       onPress={handlePress}>
-      <Image
-        style={{width: 50, height: 50, marginRight: 10}}
-        source={{uri: item?.track?.album?.images[0].url}}
-      />
+      {item?.track?.album?.images[0].url && (
+        <Image
+          style={{width: 50, height: 50, marginRight: 10}}
+          source={{uri: item?.track?.album?.images[0].url}}
+        />
+      )}
       <View style={{flex: 1}}>
         <Text
           numberOfLines={1}

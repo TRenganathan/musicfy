@@ -180,15 +180,17 @@ const HomeScreen = () => {
             justifyContent: 'space-between',
           }}>
           <View style={{flexDirection: 'row', alignItems: 'center'}}>
-            <Image
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                resizeMode: 'cover',
-              }}
-              source={{uri: userProfile?.images[0]?.url}}
-            />
+            {userProfile?.images[0]?.url && (
+              <Image
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  resizeMode: 'cover',
+                }}
+                source={{uri: userProfile?.images[0]?.url}}
+              />
+            )}
             <View>
               <Text style={{fontSize: 12, marginLeft: 10}}>
                 {userProfile?.display_name}

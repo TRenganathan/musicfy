@@ -12,10 +12,12 @@ const RecentlyPlayedCard = ({item, index}) => {
         })
       }
       style={{margin: 10}}>
-      <Image
-        style={{width: 130, height: 130, borderRadius: 5}}
-        source={{uri: item.track.album.images[0].url}}
-      />
+      {item?.track?.album?.images[0]?.url && (
+        <Image
+          style={{width: 130, height: 130, borderRadius: 5}}
+          source={{uri: item.track.album.images[0].url}}
+        />
+      )}
       {/* <Text
         numberOfLines={1}
         style={{
