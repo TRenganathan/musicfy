@@ -16,7 +16,7 @@ const RecentlyPlayedCard = ({item, index}) => {
         style={{width: 130, height: 130, borderRadius: 5}}
         source={{uri: item.track.album.images[0].url}}
       />
-      <Text
+      {/* <Text
         numberOfLines={1}
         style={{
           fontSize: 13,
@@ -25,6 +25,11 @@ const RecentlyPlayedCard = ({item, index}) => {
           marginTop: 10,
         }}>
         {item?.track?.name}
+      </Text> */}
+      <Text>
+        {(item?.track?.name).length > 18
+          ? (item?.track?.name).substring(0, 18 - 3) + '...'
+          : item?.track?.name}
       </Text>
     </Pressable>
   );

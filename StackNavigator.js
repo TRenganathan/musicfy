@@ -11,6 +11,8 @@ import {NavigationContainer, useNavigation} from '@react-navigation/native';
 import LoginScreen from './Screens/LoginScreen';
 import LikedSongsScreen from './Screens/LikedSongsScreen';
 import SongInfoScreen from './Screens/SongInfoScreen';
+import PlayListScreen from './Screens/PlayListScreen';
+
 const Tab = createBottomTabNavigator();
 const BottomTabs = () => {
   return (
@@ -101,6 +103,19 @@ function Navigation() {
           }}
         />
         <Stack.Screen name="Info" component={SongInfoScreen} />
+        <Stack.Screen
+          name="PlayList"
+          component={PlayListScreen}
+          options={{
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: '#9b6078',
+            },
+            headerTitleStyle: {color: 'white'},
+
+            headerTintColor: 'white',
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

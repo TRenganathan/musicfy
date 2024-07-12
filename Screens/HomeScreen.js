@@ -23,6 +23,7 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const [recentlyplayed, setRecentlyPlayed] = useState([]);
   const [topArtists, setTopArtists] = useState([]);
+  const [playLists, setPlayList] = useState([]);
 
   const greetingMessage = () => {
     const currentTime = new Date().getHours();
@@ -64,13 +65,13 @@ const HomeScreen = () => {
     try {
       const response = await axios({
         method: 'GET',
-        url: 'https://api.spotify.com/v1/me/player/recently-played?limit=4',
+        url: 'https://api.spotify.com/v1/me/player/recently-played?limit=10',
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
       const tracks = response.data.items;
-      // console.log(tracks, 'recent played');
+
       setRecentlyPlayed(tracks);
     } catch (err) {
       console.log(err.message);
@@ -97,19 +98,46 @@ const HomeScreen = () => {
       console.log(err.message);
     }
   };
+  const getPlayList = async () => {
+    try {
+      const accessToken = await AsyncStorage.getItem('token');
+      if (!accessToken) {
+        console.log('Access token not found');
+        return;
+      }
+      const type = 'artists';
+      const response = await axios.get(
+        `https://api.spotify.com/v1/me/playlists`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+      setPlayList(response.data.items);
+    } catch (err) {
+      console.log(err.message);
+    }
+  };
+
   useEffect(() => {
     getProfile();
     getRecentlyPlayedSongs();
     getTopItems();
+    getPlayList();
   }, []);
   const logout = async () => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('expirationDate');
     navigation.navigate('Login');
   };
+  const NavigateToPlayList = item => {
+    navigation.navigate('PlayList', {item: item});
+  };
   const renderItem = ({item}) => {
     return (
       <Pressable
+        onPress={() => NavigateToPlayList(item)}
         style={{
           flex: 1,
           flexDirection: 'row',
@@ -122,13 +150,20 @@ const HomeScreen = () => {
         }}>
         <Image
           style={{height: 55, width: 55}}
-          source={{uri: item?.track?.album?.images[0]?.url}}
+          source={{uri: item?.images[0]?.url}}
         />
         <View style={{flex: 1, marginHorizontal: 8, justifyContent: 'center'}}>
           <Text
             numberOfLines={2}
-            style={{fontSize: 13, fontWeight: 'bold', color: 'white'}}>
-            {item?.track?.name}
+            style={{
+              fontSize: 13,
+              fontWeight: 'bold',
+              color: 'white',
+            }}>
+            {item?.name}
+          </Text>
+          <Text style={{color: '#989898', marginTop: 3, fontSize: 12}}>
+            {item.tracks.total} Songs
           </Text>
         </View>
       </Pressable>
@@ -268,7 +303,7 @@ const HomeScreen = () => {
         </View>
         <View>
           <FlatList
-            data={recentlyplayed}
+            data={playLists}
             renderItem={renderItem}
             numColumns={2}
             columnWrapperStyle={{justifyContent: 'space-between'}}

@@ -19,9 +19,11 @@ import {authorize} from 'react-native-app-auth';
 const LoginScreen = () => {
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  const [acToken, setAcToken] = useState(null);
   useEffect(() => {
     const checkTokenValidity = async () => {
       const accessToken = await AsyncStorage.getItem('token');
+      setAcToken(accessToken);
       const expirationDate = await AsyncStorage.getItem('expirationDate');
       console.log('access token', accessToken);
       console.log('expiration date', expirationDate);
@@ -41,7 +43,7 @@ const LoginScreen = () => {
     };
 
     checkTokenValidity();
-  }, []);
+  }, [acToken]);
 
   const Authenticate = async () => {
     setLoading(true);

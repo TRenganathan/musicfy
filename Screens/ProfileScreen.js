@@ -114,7 +114,9 @@ const ProfileScreen = () => {
               />
               <View>
                 <Text style={{color: 'white'}}>{item?.name}</Text>
-                <Text style={{color: 'white', marginTop: 7}}>0 followers</Text>
+                <Text style={{color: 'white', marginTop: 7}}>
+                  {item.tracks.total} Songs
+                </Text>
               </View>
             </View>
           ))}
