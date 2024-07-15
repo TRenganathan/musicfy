@@ -13,6 +13,7 @@ import React, {useEffect, useState} from 'react';
 import Entypo from 'react-native-vector-icons/Entypo';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import {useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {authorize} from 'react-native-app-auth';
@@ -38,10 +39,11 @@ const LoginScreen = () => {
           // Token has expired
           await AsyncStorage.removeItem('token');
           await AsyncStorage.removeItem('expirationDate');
+          navigation.navigate('LocalMusic');
         }
       }
     };
-    navigation.navigate('LocalMusic');
+
     checkTokenValidity();
   }, [acToken]);
 
@@ -202,6 +204,7 @@ const LoginScreen = () => {
         </Pressable>
 
         <Pressable
+          onPress={() => navigation.navigate('LocalMusic')}
           style={{
             backgroundColor: '#131624',
             padding: 10,
@@ -217,7 +220,7 @@ const LoginScreen = () => {
             borderColor: '#C0C0C0',
             borderWidth: 0.8,
           }}>
-          <Entypo name="facebook" size={24} color="blue" />
+          <Ionicons name="musical-notes" color="white" size={25} />
           <Text
             style={{
               fontWeight: '500',
@@ -225,7 +228,7 @@ const LoginScreen = () => {
               textAlign: 'center',
               flex: 1,
             }}>
-            Sign In with facebook
+            Local Music
           </Text>
         </Pressable>
       </View>

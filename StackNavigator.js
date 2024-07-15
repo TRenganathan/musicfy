@@ -138,7 +138,7 @@ function Navigation() {
           options={{
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#3b5998',
+              backgroundColor: '#42275a',
             },
             headerTitleStyle: {color: 'white'},
 

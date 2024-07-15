@@ -104,12 +104,12 @@ const LocalMusicPlayer = () => {
 
       Sound.setCategory('Playback');
       setIsPlaying(true);
-      //   const interval = setInterval(() => {
-      //     if (sound) {
-      //       sound.getCurrentTime(seconds => setCurrentTime(seconds));
-      //     }
-      //   }, 1000);
-      //   setProgressInterval(interval);
+      const interval = setInterval(() => {
+        if (sound) {
+          sound.getCurrentTime(seconds => setCurrentTime(seconds));
+        }
+      }, 1000);
+      setProgressInterval(interval);
     } catch (error) {
       console.log(error);
     }
@@ -119,8 +119,8 @@ const LocalMusicPlayer = () => {
       limit: 100,
 
       offset: 0,
-      cover: true, // Fetch album covers
-      coverQuality: 50, // Medium quality album covers
+      cover: true,
+      coverQuality: 50,
 
       minSongDuration: 1000,
       sortBy: SortSongFields.TITLE,
@@ -132,7 +132,7 @@ const LocalMusicPlayer = () => {
   const handleSearch = text => {
     setIput(text);
     const filteredTracks = audioFiles?.filter(item =>
-      item.track.name.toLowerCase().includes(text.toLocaleLowerCase()),
+      item.title.toLowerCase().includes(text.toLocaleLowerCase()),
     );
     setSearchedTracks(filteredTracks);
   };
@@ -199,7 +199,6 @@ const LocalMusicPlayer = () => {
     <LinearGradient
       colors={['#510d55', '#180310']}
       style={{flex: 1, padding: 10}}>
-      <Text style={{color: 'black'}}>Local Audio Files:</Text>
       <Pressable
         style={{
           marginHorizontal: 10,
@@ -241,7 +240,14 @@ const LocalMusicPlayer = () => {
       </Pressable>
       <View style={{height: 50}} />
 
-      <View style={{marginHorizontal: 10}}>
+      <View
+        style={{
+          marginHorizontal: 10,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 20,
+        }}>
         <View>
           <Text style={{fontSize: 18, fontWeight: 'bold', color: 'white'}}>
             Local Songs
@@ -280,19 +286,24 @@ const LocalMusicPlayer = () => {
       <FlatList
         data={audioFiles}
         keyExtractor={item => item.path}
-        renderItem={({item, i}) => (
+        renderItem={({item}) => (
           <Pressable
+            key={item.id}
             onPress={() => Play(item)}
-            key={i}
             style={{
               flexDirection: 'row',
               gap: 5,
               alignItems: 'center',
               margin: 10,
             }}>
-            {item.cover && (
+            {item.cover ? (
               <Image
                 source={{uri: item.cover}}
+                style={{width: 50, height: 50}}
+              />
+            ) : (
+              <Image
+                source={require('./../assets/music-cover.jpg')}
                 style={{width: 50, height: 50}}
               />
             )}
