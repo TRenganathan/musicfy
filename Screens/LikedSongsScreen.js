@@ -26,33 +26,52 @@ import {Player} from '../App';
 import {BottomModal} from 'react-native-modals';
 import {ModalContent, ModalPortal} from 'react-native-modals';
 import Sound from 'react-native-sound';
+import PlayerTrack from '../components/PlayerTrack';
 
 const LikedSongsScreen = () => {
-  const {currentTrack, setCurrentTrack} = useContext(Player);
-  const [modalVisible, setModalVisible] = useState(false);
+  const {
+    currentTrack,
+    setCurrentTrack,
+    modalVisible,
+    setModalVisible,
+    currentSound,
+    setCurrentSound,
+    duration,
+    setDuration,
+    currentTime,
+    setCurrentTime,
+    isPlaying,
+    setIsPlaying,
+    value,
+    setAudioFiles,
+    audioFiles,
+    progressInterval,
+    setProgressInterval,
+  } = useContext(Player);
+  // const [modalVisible, setModalVisible] = useState(false);
   const [progress, setProgress] = useState(null);
 
-  const [isPlaying, setIsPlaying] = useState(false);
+  // const [isPlaying, setIsPlaying] = useState(false);
   // const [currentTime, setCurrentTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
 
   const [input, setIput] = useState('');
-  const [savedTracks, setSavedTracks] = useState([]);
-  const [currentSound, setCurrentSound] = useState(null);
-  const [progressInterval, setProgressInterval] = useState(null);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const value = useRef(0);
+  // const [audioFiles, setAudioFiles] = useState([]);
+  // const [currentSound, setCurrentSound] = useState(null);
+  // const [progressInterval, setProgressInterval] = useState(null);
+  // const [duration, setDuration] = useState(0);
+  // const [currentTime, setCurrentTime] = useState(0);
+  // const value = useRef(0);
 
   const [searchedTracks, setSearchedTracks] = useState([]);
   useEffect(() => {
     // Cleanup when component unmounts or sound changes
     return () => {
       if (progressInterval) {
-        clearInterval(progressInterval);
+        // clearInterval(progressInterval);
       }
       if (currentSound) {
-        currentSound.release();
+        // currentSound.release();
       }
     };
   }, [currentSound, progressInterval]);
@@ -74,7 +93,7 @@ const LikedSongsScreen = () => {
         throw new Error('failed to fetch the tracks');
       }
       const data = await response.json();
-      setSavedTracks(data.items);
+      setAudioFiles(data.items);
     } catch (error) {
       console.log(error);
     }
@@ -83,10 +102,10 @@ const LikedSongsScreen = () => {
     getSavedTracks();
   }, []);
   const playTrack = async () => {
-    if (savedTracks.length > 0) {
-      setCurrentTrack(savedTracks[0]);
+    if (audioFiles.length > 0) {
+      setCurrentTrack(audioFiles[0]);
     }
-    await Play(savedTracks[0]);
+    await Play(audioFiles[0]);
   };
   const Play = async nextTrack => {
     const preview_url = nextTrack?.track?.preview_url;
@@ -123,7 +142,8 @@ const LikedSongsScreen = () => {
       setCurrentSound(sound);
       // Optionally set audio mode (this may not be needed depending on your requirements)
       Sound.setCategory('Playback');
-      setIsPlaying(sound?._loaded);
+      // setIsPlaying(sound?._loaded);
+      setIsPlaying(true);
 
       const interval = setInterval(() => {
         if (sound) {
@@ -157,13 +177,13 @@ const LikedSongsScreen = () => {
       setCurrentSound(null);
     }
     value.current += 1;
-    if (value.current < savedTracks.length) {
-      const nextTrack = savedTracks[value.current];
+    if (value.current < audioFiles.length) {
+      const nextTrack = audioFiles[value.current];
       setCurrentTrack(nextTrack);
       await Play(nextTrack);
     } else {
       value.current = 0;
-      const nextTrack = savedTracks[0];
+      const nextTrack = audioFiles[0];
       setCurrentTrack(nextTrack);
       await Play(nextTrack);
     }
@@ -175,14 +195,14 @@ const LikedSongsScreen = () => {
     }
 
     value.current -= 1;
-    if (value.current < savedTracks.length) {
+    if (value.current < audioFiles.length) {
       if (value.current < 0) {
-        value.current = savedTracks.length - 1;
-        const previousTrack = savedTracks[value.current];
+        value.current = audioFiles.length - 1;
+        const previousTrack = audioFiles[value.current];
         setCurrentTrack(previousTrack);
         await Play(previousTrack);
       } else {
-        const previousTrack = savedTracks[value.current];
+        const previousTrack = audioFiles[value.current];
         setCurrentTrack(previousTrack);
         await Play(previousTrack);
       }
@@ -190,7 +210,7 @@ const LikedSongsScreen = () => {
   };
   const handleSearch = text => {
     setIput(text);
-    const filteredTracks = savedTracks?.filter(item =>
+    const filteredTracks = audioFiles?.filter(item =>
       item.track.name.toLowerCase().includes(text.toLocaleLowerCase()),
     );
     setSearchedTracks(filteredTracks);
@@ -266,7 +286,7 @@ const LikedSongsScreen = () => {
               Liked Songs
             </Text>
             <Text style={{color: 'white', fontSize: 13, marginTop: 5}}>
-              {savedTracks?.length ? savedTracks?.length : 0}
+              {audioFiles?.length ? audioFiles?.length : 0}
             </Text>
           </View>
 
@@ -327,7 +347,7 @@ const LikedSongsScreen = () => {
             ) : (
               <FlatList
                 showsVerticalScrollIndicator={false}
-                data={savedTracks}
+                data={audioFiles}
                 renderItem={({item}) => (
                   <SongItem
                     item={item}
@@ -341,52 +361,53 @@ const LikedSongsScreen = () => {
         </View>
       </View>
       {currentTrack && (
-        <Pressable
-          onPress={() => setModalVisible(!modalVisible)}
-          style={{
-            backgroundColor: '#5072A7',
-            width: '90%',
-            padding: 10,
-            marginLeft: 'auto',
-            marginRight: 'auto',
-            marginBottom: 15,
-            position: 'absolute',
-            borderRadius: 6,
-            left: 20,
-            bottom: 10,
-            justifyContent: 'space-between',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 10,
-          }}>
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
-            {currentTrack?.track?.album?.images[0].url && (
-              <Image
-                style={{width: 40, height: 40}}
-                source={{uri: currentTrack?.track?.album?.images[0].url}}
-              />
-            )}
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: 13,
-                width: 220,
-                color: 'white',
-                fontWeight: 'bold',
-              }}>
-              {currentTrack?.track?.name} •{' '}
-              {currentTrack?.track?.artists[0].name}
-            </Text>
-          </View>
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-            <AntDesign name="heart" size={24} color="#1DB954" />
-            <Pressable>
-              <AntDesign name="pausecircle" size={24} color="white" />
-            </Pressable>
-          </View>
-        </Pressable>
+        <PlayerTrack />
+        // <Pressable
+        //   onPress={() => setModalVisible(!modalVisible)}
+        //   style={{
+        //     backgroundColor: '#5072A7',
+        //     width: '90%',
+        //     padding: 10,
+        //     marginLeft: 'auto',
+        //     marginRight: 'auto',
+        //     marginBottom: 15,
+        //     position: 'absolute',
+        //     borderRadius: 6,
+        //     left: 20,
+        //     bottom: 10,
+        //     justifyContent: 'space-between',
+        //     flexDirection: 'row',
+        //     alignItems: 'center',
+        //     gap: 10,
+        //   }}>
+        //   <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+        //     {currentTrack?.track?.album?.images[0].url && (
+        //       <Image
+        //         style={{width: 40, height: 40}}
+        //         source={{uri: currentTrack?.track?.album?.images[0].url}}
+        //       />
+        //     )}
+        //     <Text
+        //       numberOfLines={1}
+        //       style={{
+        //         fontSize: 13,
+        //         width: 220,
+        //         color: 'white',
+        //         fontWeight: 'bold',
+        //       }}>
+        //       {currentTrack?.track?.name} •{' '}
+        //       {currentTrack?.track?.artists[0].name}
+        //     </Text>
+        //   </View>
+        //   <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
+        //     <AntDesign name="heart" size={24} color="#1DB954" />
+        //     <Pressable>
+        //       <AntDesign name="pausecircle" size={24} color="white" />
+        //     </Pressable>
+        //   </View>
+        // </Pressable>
       )}
-      <BottomModal
+      {/* <BottomModal
         visible={modalVisible}
         onHardwareBackPress={() => setModalVisible(false)}
         swipeDirection={['up', 'down']}
@@ -531,7 +552,7 @@ const LikedSongsScreen = () => {
             </View>
           </View>
         </ModalContent>
-      </BottomModal>
+      </BottomModal> */}
     </>
   );
 };

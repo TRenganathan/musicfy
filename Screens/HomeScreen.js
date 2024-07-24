@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
@@ -17,8 +17,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import ArtistCard from '../components/ArtistCard';
 import RecentlyPlayedCard from '../components/RecentlyPlayedCard';
+import PlayerTrack from '../components/PlayerTrack';
+import {Player} from '../App';
 
 const HomeScreen = () => {
+  const {currentTrack} = useContext(Player);
+
   const [userProfile, setUserProfile] = useState();
   const navigation = useNavigation();
   const [recentlyplayed, setRecentlyPlayed] = useState([]);
@@ -348,6 +352,7 @@ const HomeScreen = () => {
           />
         </View>
       </ScrollView>
+      {currentTrack && <PlayerTrack />}
     </View>
   );
 };
