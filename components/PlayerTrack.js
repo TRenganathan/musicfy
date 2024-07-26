@@ -1,5 +1,5 @@
 import {Image, Pressable, StyleSheet, Text, View} from 'react-native';
-import React, {useContext, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import Feather from 'react-native-vector-icons/Feather';
 
@@ -11,6 +11,7 @@ import {Player} from '../App';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Sound from 'react-native-sound';
+import MusicControl from 'react-native-music-control';
 
 const PlayerTrack = ({}) => {
   const {
@@ -32,6 +33,24 @@ const PlayerTrack = ({}) => {
     progressInterval,
     setProgressInterval,
   } = useContext(Player);
+  useEffect(() => {
+    if (currentTrack) {
+      MusicControl.setNowPlaying({
+        title: currentTrack?.title || currentTrack?.track.name,
+        artwork:
+          currentTrack?.cover || currentTrack?.track?.album?.images[0]?.url,
+        artist: currentTrack?.track?.artists[0]?.name,
+        duration: duration,
+      });
+
+      MusicControl.updatePlayback({
+        state: isPlaying
+          ? MusicControl.STATE_PLAYING
+          : MusicControl.STATE_PAUSED,
+        elapsedTime: currentTime,
+      });
+    }
+  }, [currentTrack, isPlaying, currentTime, duration]);
   const Play = async nextTrack => {
     setCurrentTrack(nextTrack);
     let preview_url;
@@ -107,8 +126,14 @@ const PlayerTrack = ({}) => {
     if (currentSound) {
       if (isPlaying) {
         currentSound.pause();
+        MusicControl.updatePlayback({
+          state: MusicControl.STATE_PAUSED,
+        });
       } else {
         currentSound.play();
+        MusicControl.updatePlayback({
+          state: MusicControl.STATE_PLAYING,
+        });
       }
       setIsPlaying(!isPlaying);
     }
