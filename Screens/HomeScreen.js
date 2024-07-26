@@ -307,15 +307,16 @@ const HomeScreen = () => {
             </View>
           </View>
         </View>
-        <View>
-          <FlatList
-            data={playLists}
-            renderItem={renderItem}
-            numColumns={2}
-            columnWrapperStyle={{justifyContent: 'space-between'}}
-          />
-        </View>
-
+      </ScrollView>
+      <View>
+        <FlatList
+          data={playLists}
+          renderItem={renderItem}
+          numColumns={2}
+          columnWrapperStyle={{justifyContent: 'space-between'}}
+        />
+      </View>
+      <ScrollView>
         <Text
           style={{
             color: 'white',
@@ -342,16 +343,18 @@ const HomeScreen = () => {
           }}>
           Recently Played
         </Text>
-        <View>
-          <FlatList
-            data={recentlyplayed}
-            horizontal
-            renderItem={({item, index}) => (
-              <RecentlyPlayedCard item={item} key={index} />
-            )}
-          />
-        </View>
       </ScrollView>
+
+      <View>
+        <FlatList
+          data={recentlyplayed}
+          horizontal
+          renderItem={({item, index}) => (
+            <RecentlyPlayedCard item={item} key={index} />
+          )}
+        />
+      </View>
+
       {currentTrack && <PlayerTrack />}
     </View>
   );

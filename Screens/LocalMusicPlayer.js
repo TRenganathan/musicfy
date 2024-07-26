@@ -18,6 +18,7 @@ import {
   TextInput,
   StyleSheet,
   NativeModules,
+  Platform,
 } from 'react-native';
 import RNFS from 'react-native-fs';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -39,6 +40,7 @@ import {Player} from '../App';
 import Slider from '@react-native-community/slider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import PlayerTrack from '../components/PlayerTrack';
+import RenderItem from '../components/RenderLocalSong';
 
 const LocalMusicPlayer = () => {
   const [input, setIput] = useState('');
@@ -88,7 +90,10 @@ const LocalMusicPlayer = () => {
           message: 'App needs access to your storage to read audio files',
         },
       );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      if (
+        granted === PermissionsAndroid.RESULTS.GRANTED ||
+        Number(Platform.Version) >= 33
+      ) {
         console.log('Storage permission granted');
 
         // getAllLocalSongs();
@@ -166,6 +171,7 @@ const LocalMusicPlayer = () => {
   // };
 
   const Play = async nextTrack => {
+    console.log('play called');
     setCurrentTrack(nextTrack);
     const preview_url = nextTrack?.url;
     if (!preview_url) {
@@ -182,7 +188,7 @@ const LocalMusicPlayer = () => {
       if (currentSound) {
         currentSound.pause();
       }
-      // Stop and release the current sound if it exists
+      //Stop and release the current sound if it exists
       // if (currentSound) {
       //   currentSound.stop(() => {
       //     currentSound.release();
@@ -361,31 +367,31 @@ const LocalMusicPlayer = () => {
     } finally {
     }
   };
-  const RenderItem = React.memo(({item, onPress}) => (
-    <Pressable onPress={onPress} style={styles.itemContainer}>
-      {item.cover ? (
-        <Image source={{uri: item.cover}} style={styles.image} />
-      ) : (
-        <Image
-          source={require('./../assets/music-cover.jpg')}
-          style={styles.image}
-        />
-      )}
-      <View style={{flex: 1}}>
-        <Text
-          numberOfLines={1}
-          style={{
-            color: currentTrack?.title == item?.title ? 'green' : 'white',
-          }}>
-          {item.title}
-        </Text>
-      </View>
-      <View style={styles.iconsContainer}>
-        <AntDesign name="heart" size={25} color={'#1DB954'} />
-        <Feather name="more-vertical" size={25} color="#c0c0c0" />
-      </View>
-    </Pressable>
-  ));
+  // const RenderItem = React.memo(({item, onPress}) => (
+  //   <Pressable onPress={onPress} style={styles.itemContainer}>
+  //     {item.cover ? (
+  //       <Image source={{uri: item.cover}} style={styles.image} />
+  //     ) : (
+  //       <Image
+  //         source={require('./../assets/music-cover.jpg')}
+  //         style={styles.image}
+  //       />
+  //     )}
+  //     <View style={{flex: 1}}>
+  //       <Text
+  //         numberOfLines={1}
+  //         style={{
+  //           color: currentTrack?.title == item?.title ? 'green' : 'white',
+  //         }}>
+  //         {item.title}
+  //       </Text>
+  //     </View>
+  //     <View style={styles.iconsContainer}>
+  //       <AntDesign name="heart" size={25} color={'#1DB954'} />
+  //       <Feather name="more-vertical" size={25} color="#c0c0c0" />
+  //     </View>
+  //   </Pressable>
+  // ));
   const renderItem = useCallback(
     ({item}) => <RenderItem item={item} onPress={() => Play(item)} />,
     [Play],
